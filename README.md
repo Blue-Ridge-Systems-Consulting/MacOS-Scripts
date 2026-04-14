@@ -10,7 +10,8 @@ For most users, the easiest option is:
 
 macOS-intel-tuning-paste.txt
 
-Open the file, copy everything in it, paste it into the macOS Terminal app, and press Return.
+Open the file, copy everything in it, paste it into the macOS Terminal app, and press Return. 
+Next restart your MacBook
 
 No extra Terminal steps are needed for that method.
 
