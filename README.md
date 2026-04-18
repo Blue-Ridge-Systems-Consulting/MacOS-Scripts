@@ -27,12 +27,19 @@ Recommended method for most users
 If you are not used to working in Terminal, use the paste file.
 
 Steps
-	1.	Open macOS-intel-tuning-paste.txt
-	2.	Copy the entire contents
-	3.	Open the Terminal app on your Mac
-	4.	Paste the contents into Terminal
-	5.	Press Return
-	6.	When the script finishes, restart your MacBook to make sure all changes are fully applied
+
+1. Open macOS-intel-tuning-paste.txt
+2. Copy the entire contents
+3. Open the Terminal app on your Mac
+4. Paste the contents into Terminal
+5. Press Return
+6. When the script finishes, restart your MacBook to make sure all changes are fully applied
+
+Before you begin
+
+It is recommended that you create a Time Machine backup before making any system changes.
+
+That way, if any setting feels unfamiliar or you decide you want to go back, you have an easy way to restore your Mac. Most people will likely appreciate the improvement in responsiveness, but having a backup first is still the smart move.
 
 Who this is for
 
@@ -56,4 +63,4 @@ A good machine does not always need to be replaced. Sometimes it just needs the 
 
 Security note
 
-This repository is regularly scanned with Aikido Security as part of a basic code safety check. As with any script, you should still review the contents yourself before running it.
+This repository is scanned with Aikido Security as part of a basic code safety check. As with any script, you should still review the contents yourself before running it.
