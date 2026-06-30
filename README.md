@@ -1,5 +1,7 @@
 Breathe New Life Into an Older Intel Mac
 
+[![Aikido Security Audit Report](https://app.aikido.dev/assets/badges/label-only-light-theme.svg)](https://app.aikido.dev/audit-report/external/WUuAYeTGe5MdKOz7TJTyBMJl/request)
+
 This project is a simple macOS tuning setup built to help older Intel-based MacBooks feel faster, cleaner, and more enjoyable to use.
 
 It was inspired by the difference it made on a 2015 Intel MacBook Pro, where it helped the machine feel dramatically more responsive in everyday use.
