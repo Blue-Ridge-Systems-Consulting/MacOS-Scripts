@@ -1,0 +1,41 @@
+name: Normalize Aikido badge
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('README.md')
+          text = p.read_text()
+          url = 'https://app.aikido.dev/audit-report/external/WUuAYeTGe5MdKOz7TJTyBMJl/request'
+          exact = '<a href="https://app.aikido.dev/audit-report/external/WUuAYeTGe5MdKOz7TJTyBMJl/request" target="_blank">\n    <img src="https://app.aikido.dev/assets/badges/full-light-theme.svg" alt="Aikido Security Audit Report" height="40" />    \n</a>'
+          old1 = '[![Aikido Security Audit Report](https://app.aikido.dev/assets/badges/label-only-light-theme.svg)](' + url + ')'
+          old2 = '[![Aikido Security Audit Report](https://app.aikido.dev/assets/badges/full-light-theme.svg)](' + url + ')'
+          if old1 in text or old2 in text:
+              text = text.replace(old1, exact).replace(old2, exact)
+          elif url not in text:
+              text = text.rstrip() + '\n\n---\n\n## Security Audit\n\n' + exact + '\n'
+          p.write_text(text)
+          PY
+          rm -f .github/workflows/normalize-aikido-badge.yml
+          git add -A
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Normalize Aikido README badge"
+          git push
