@@ -95,6 +95,8 @@ This repository includes Blue Ridge Systems Consulting branding assets. See [`BR
 
 ## Security
 
-[![Aikido Security Audit Report](https://app.aikido.dev/assets/badges/label-only-light-theme.svg)](https://app.aikido.dev/audit-report/external/WUuAYeTGe5MdKOz7TJTyBMJl/request)
+<a href="https://app.aikido.dev/audit-report/external/WUuAYeTGe5MdKOz7TJTyBMJl/request" target="_blank">
+    <img src="https://app.aikido.dev/assets/badges/full-light-theme.svg" alt="Aikido Security Audit Report" height="40" />    
+</a>
 
 This repository is scanned with Aikido Security as part of a basic code safety check. As with any script, you should still review the contents yourself before running it.
