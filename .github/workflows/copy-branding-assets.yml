@@ -1,0 +1,45 @@
+name: Copy branding assets
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  copy-branding-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out destination repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Copy branding files from Windows maintenance repo
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          tmpdir="$(mktemp -d)"
+          git clone --depth 1 https://github.com/owensreo/blue-ridge-windows-maintenance.git "$tmpdir/source"
+
+          mkdir -p assets
+          rsync -a "$tmpdir/source/assets/" assets/
+          cp "$tmpdir/source/BRANDING.md" BRANDING.md
+
+          rm -f .github/workflows/copy-branding-assets.yml
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "Branding files already copied."
+            exit 0
+          fi
+
+          git commit -m "Add Blue Ridge branding assets"
+          git push
