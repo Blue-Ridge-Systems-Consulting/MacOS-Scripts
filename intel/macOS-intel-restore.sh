@@ -31,7 +31,7 @@ fi
 BACKUP_DIR="${1:-}"
 
 if [[ -z "$BACKUP_DIR" ]]; then
-  local -a backups
+  typeset -a backups
   backups=("$HOME"/Desktop/macos-intel-tune-backup-*(N.om))
 
   if (( ${#backups[@]} == 0 )); then
