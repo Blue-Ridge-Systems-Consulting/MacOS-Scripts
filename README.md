@@ -4,6 +4,8 @@
 
 # Blue Ridge macOS Scripts
 
+[![macOS](https://img.shields.io/badge/Optimized%20for-macOS-000000?style=for-the-badge&logo=apple&logoColor=white)](https://www.apple.com/macos/)
+
 ## Breathe New Life Into an Older Intel Mac
 
 This project is a simple macOS tuning setup built to help older Intel-based MacBooks feel faster, cleaner, and more enjoyable to use.
@@ -100,5 +102,3 @@ This repository includes Blue Ridge Systems Consulting branding assets. See [`BR
 </a>
 
 This repository is scanned with Aikido Security as part of a basic code safety check. As with any script, you should still review the contents yourself before running it.
-
-[![macOS](https://img.shields.io/badge/Optimized%20for-macOS-000000?style=for-the-badge&logo=apple&logoColor=white)](https://www.apple.com/macos/)
