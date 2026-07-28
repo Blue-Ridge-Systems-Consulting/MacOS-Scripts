@@ -32,7 +32,7 @@ BACKUP_DIR="${1:-}"
 
 if [[ -z "$BACKUP_DIR" ]]; then
   typeset -a backups
-  backups=("$HOME"/Desktop/macos-intel-tune-backup-*(N.om))
+  backups=("$HOME"/Desktop/macos-intel-tune-backup-*(N/om))
 
   if (( ${#backups[@]} == 0 )); then
     print -u2 "No Intel tuning backup folders were found on the Desktop."
@@ -41,7 +41,22 @@ if [[ -z "$BACKUP_DIR" ]]; then
     exit 1
   fi
 
-  BACKUP_DIR="${backups[1]}"
+  integer i
+  for i in {1..${#backups[@]}}; do
+    if [[ -d "${backups[$i]}" &&
+          -f "${backups[$i]}/restore-settings.sh" &&
+          -f "${backups[$i]}/restore-power-settings.sh" &&
+          -d "${backups[$i]}/preferences" ]]; then
+      BACKUP_DIR="${backups[$i]}"
+      break
+    fi
+  done
+
+  if [[ -z "$BACKUP_DIR" ]]; then
+    print -u2 "No compatible Intel tuning backup folders were found on the Desktop."
+    print -u2 "Older report-only backups cannot be restored automatically."
+    exit 1
+  fi
 fi
 
 BACKUP_DIR="${BACKUP_DIR:A}"
@@ -57,6 +72,13 @@ if [[ ! -f "$RESTORE_SCRIPT" ]]; then
   print -u2 "This folder does not contain restore-settings.sh:"
   print -u2 "  $BACKUP_DIR"
   print -u2 "Only backups created by the updated Intel tuning script can be restored automatically."
+  exit 1
+fi
+
+if [[ ! -f "$BACKUP_DIR/restore-power-settings.sh" ||
+      ! -d "$BACKUP_DIR/preferences" ]]; then
+  print -u2 "This folder does not contain a complete Intel restore package:"
+  print -u2 "  $BACKUP_DIR"
   exit 1
 fi
 
