@@ -100,3 +100,5 @@ This repository includes Blue Ridge Systems Consulting branding assets. See [`BR
 </a>
 
 This repository is scanned with Aikido Security as part of a basic code safety check. As with any script, you should still review the contents yourself before running it.
+
+[![macOS](https://img.shields.io/badge/Optimized%20for-macOS-000000?style=for-the-badge&logo=apple&logoColor=white)](https://www.apple.com/macos/)
