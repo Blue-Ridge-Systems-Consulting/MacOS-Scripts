@@ -6,90 +6,100 @@
 
 [![macOS](https://img.shields.io/badge/Optimized%20for-macOS-000000?style=for-the-badge&logo=apple&logoColor=white)](https://www.apple.com/macos/)
 
-## Breathe New Life Into an Older Intel Mac
+## Turn Off the Hollywood Glimmer and Turn Your Mac Back Into a Computer
 
-This project is a simple macOS tuning setup built to help older Intel-based MacBooks feel faster, cleaner, and more enjoyable to use.
+This repository contains separate, conservative tuning setups for Apple Silicon Macs and older Intel Macs.
 
-It was inspired by the difference it made on a 2015 Intel MacBook Pro, where it helped the machine feel dramatically more responsive in everyday use.
+The goal is simple: reduce unnecessary animation, transparency, visual delay, and distracting behavior without redesigning the Mac, deleting personal files, installing cleanup software, or pretending macOS needs magic optimization.
 
-## Quick Start
+## Choose Your Mac
 
-For most users, the easiest option is:
+### Apple Silicon Macs
 
-`macOS-intel-tuning-paste.txt`
+For Macs with an M-series processor, use the files in [`apple-silicon/`](apple-silicon/).
 
-Open the file, copy everything in it, paste it into the macOS Terminal app, and press Return.
+- [`macOS-Apple-Silicon-tuning.txt`](apple-silicon/macOS-Apple-Silicon-tuning.txt)  
+  Easiest method. Copy the command, paste it into Terminal, and press Return.
 
-No extra Terminal steps are needed for that method.
+- [`macOS-Apple-Silicon-tuning.sh`](apple-silicon/macOS-Apple-Silicon-tuning.sh)  
+  Traditional script for users who prefer to download, inspect, and run it directly.
 
-## Included Files
+The Apple Silicon version deliberately leaves the following alone:
 
-- `macOS-intel-tuning-paste.txt`  
-  Best for everyday users who want the simplest path.
+- Dock visibility, position, size, magnification, and contents
+- Battery charging behavior
+- Standby, hibernation, and sleep behavior
+- Personal files and installed applications
+- Wallpaper, accent color, Stage Manager, and desktop layout
 
-- `macOS-intel-tuning.sh`  
-  Best for advanced users who prefer the traditional script version.
+Before changing preferences, it saves a before-state report, exports the affected preference domains, and creates a restore script on the Desktop.
 
-- `BRANDING.md`  
-  Blue Ridge Systems Consulting branding and usage notes for this repository.
+### Older Intel Macs
 
-## Recommended Method for Most Users
+For Intel-based Macs, use the files in [`intel/`](intel/).
 
-If you are not used to working in Terminal, use the paste file.
+- [`macOS-intel-tuning-paste.txt`](intel/macOS-intel-tuning-paste.txt)  
+  Easiest method for everyday users.
 
-### Steps
+- [`macOS-intel-tuning.sh`](intel/macOS-intel-tuning.sh)  
+  Traditional script version.
 
-1. Open `macOS-intel-tuning-paste.txt`
+The Intel setup was inspired by the difference it made on a 2015 Intel MacBook Pro, where it helped the machine feel dramatically more responsive in everyday use.
+
+## Apple Silicon Quick Start
+
+1. Open [`apple-silicon/macOS-Apple-Silicon-tuning.txt`](apple-silicon/macOS-Apple-Silicon-tuning.txt)
+2. Copy the Terminal command
+3. Open the Terminal app on the Mac
+4. Paste the command and press Return
+5. Review the completion report
+6. Log out and back in, or restart the Mac
+
+## Intel Quick Start
+
+1. Open [`intel/macOS-intel-tuning-paste.txt`](intel/macOS-intel-tuning-paste.txt)
 2. Copy the entire contents
-3. Open the Terminal app on your Mac
-4. Paste the contents into Terminal
-5. Press Return
-6. When the script finishes, restart your MacBook to make sure all changes are fully applied
+3. Open the Terminal app on the Mac
+4. Paste the contents and press Return
+5. Restart the Mac when the script finishes
 
 ## Before You Begin
 
-It is recommended that you create a Time Machine backup before making any system changes.
+Creating a Time Machine backup before making system changes is always recommended.
 
-That way, if any setting feels unfamiliar or you decide you want to go back, you have an easy way to restore your Mac. Most people will likely appreciate the improvement in responsiveness, but having a backup first is still the smart move.
+The Apple Silicon script also creates its own preference backup and restore script before tuning begins. The Intel script saves a smaller before-state report.
 
-## Who This Is For
+## What These Scripts Do
 
-This is meant for people with older Intel-based Macs who want a smoother, more responsive experience without replacing the machine.
+Depending on the Mac, the scripts adjust a conservative collection of settings related to responsiveness and everyday usability:
 
-## What This Does
+- Reduce motion, transparency, and animation overhead
+- Tighten Dock, Mission Control, Finder, and keyboard behavior
+- Show filename extensions and simplify common Finder behavior
+- Reduce unnecessary reopen and auto-launch behavior
+- Save a before-state report before making changes
 
-This tuning setup adjusts a collection of macOS settings related to responsiveness and everyday usability.
+The Apple Silicon version does not alter power-management settings.
 
-It focuses on a few practical areas:
+## What These Scripts Do Not Do
 
-- Reducing animation and visual overhead
-- Tightening up Dock, Finder, and keyboard behavior
-- Adjusting a few power-management settings for older Intel Macs
-- Saving a simple before-state report to your Desktop before changes are made
+They do not:
 
-The goal is not to turn an old machine into a brand-new one. The goal is to help it feel cleaner, quicker, and more pleasant to use.
-
-## What This Does Not Do
-
-This script is intended to be conservative.
-
-It does not:
-
-- Delete your personal files
+- Delete personal files
 - Uninstall applications
 - Install third-party software
+- Clear caches as a fake performance cure
 - Scrape personal data
-- Replace normal maintenance or hardware upgrades when those are actually needed
+- Hide or rearrange the Dock
+- Replace normal maintenance or hardware repair when those are actually needed
 
 ## Important Note
 
-This script changes macOS settings. Please review it before running it and use it only if you are comfortable making those changes on your system.
+These scripts change macOS preferences. Review the script intended for your Mac before running it, and use it only if you are comfortable making those changes.
 
-## Why I am Sharing It
+## Why I Am Sharing It
 
-Because it genuinely helped my own Intel MacBook feel much better in daily use, and I think it may help other people too.
-
-A good machine does not always need to be replaced. Sometimes it just needs the right tuning.
+A good machine does not always need to be replaced. Sometimes it just needs the unnecessary pageantry turned down so it can get back to being a computer.
 
 ## Branding
 
