@@ -1,3 +1,3 @@
 # Paste the command below into the macOS Terminal app and press Return.
 # It downloads the matching reviewed Intel tuning script from this public GitHub repository and runs it with zsh.
-/bin/zsh -c "$(curl -fsSL https://raw.githubusercontent.com/owensreo/MacOS-Scripts/main/intel/macOS-intel-tuning.sh)"
+/bin/zsh -c 'script="$(/usr/bin/curl -fsSL https://raw.githubusercontent.com/owensreo/MacOS-Scripts/main/intel/macOS-intel-tuning.sh)" || exit 1; [[ -n "$script" ]] || { print -u2 "The downloaded script was empty."; exit 1; }; /bin/zsh -c "$script"'

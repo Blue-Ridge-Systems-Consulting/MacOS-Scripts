@@ -32,12 +32,17 @@ print "delete files, clear caches, or install software."
 print ""
 
 BACKUP_DIR="$HOME/Desktop/macos-apple-silicon-tune-backup-$(date +%Y%m%d-%H%M%S)"
-mkdir -p "$BACKUP_DIR/preferences"
+PREF_DIR="$BACKUP_DIR/preferences"
+
+if ! mkdir -m 700 "$BACKUP_DIR" || ! mkdir -m 700 "$PREF_DIR"; then
+  print -u2 "Could not create a new backup folder. No settings were changed."
+  exit 1
+fi
 
 print "Saving current settings to:"
 print "  $BACKUP_DIR"
 
-{
+if ! {
   print "### Date"
   date
   print ""
@@ -58,21 +63,67 @@ print "  $BACKUP_DIR"
   print ""
   print "### Disk free"
   df -h /
-} > "$BACKUP_DIR/before-report.txt"
+} > "$BACKUP_DIR/before-report.txt"; then
+  print -u2 "Could not save the before-state report. No settings were changed."
+  exit 1
+fi
+
+domain_exists() {
+  local domain="$1"
+  local domains
+
+  domains="$(defaults domains 2>/dev/null)" || return 2
+  awk -v wanted="$domain" '
+    BEGIN { RS="," }
+    {
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", $0)
+      if ($0 == wanted) {
+        found=1
+        exit
+      }
+    }
+    END { exit(found ? 0 : 1) }
+  ' <<< "$domains"
+}
 
 backup_domain() {
   local domain="$1"
   local filename="$2"
-  defaults export "$domain" "$BACKUP_DIR/preferences/$filename.plist" >/dev/null 2>&1 || true
+  local plist="$PREF_DIR/$filename.plist"
+  local absent="$PREF_DIR/$filename.absent"
+
+  if defaults export "$domain" "$plist" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  domain_exists "$domain"
+  local domain_status=$?
+
+  if (( domain_status == 1 )); then
+    if : > "$absent"; then
+      return 0
+    fi
+  fi
+
+  print -u2 "Could not back up $domain. No settings were changed."
+  return 1
 }
 
-backup_domain NSGlobalDomain NSGlobalDomain
-backup_domain com.apple.universalaccess com.apple.universalaccess
-backup_domain com.apple.dock com.apple.dock
-backup_domain com.apple.finder com.apple.finder
-backup_domain com.apple.desktopservices com.apple.desktopservices
-backup_domain com.apple.Safari com.apple.Safari
-backup_domain com.apple.print.PrintingPrefs com.apple.print.PrintingPrefs
+integer BACKUP_ERRORS=0
+backup_domain NSGlobalDomain NSGlobalDomain || (( BACKUP_ERRORS++ ))
+backup_domain com.apple.universalaccess com.apple.universalaccess || (( BACKUP_ERRORS++ ))
+backup_domain com.apple.dock com.apple.dock || (( BACKUP_ERRORS++ ))
+backup_domain com.apple.finder com.apple.finder || (( BACKUP_ERRORS++ ))
+backup_domain com.apple.desktopservices com.apple.desktopservices || (( BACKUP_ERRORS++ ))
+backup_domain com.apple.Safari com.apple.Safari || (( BACKUP_ERRORS++ ))
+backup_domain com.apple.print.PrintingPrefs com.apple.print.PrintingPrefs || (( BACKUP_ERRORS++ ))
+
+if (( BACKUP_ERRORS > 0 )); then
+  print -u2 "Backup failed for $BACKUP_ERRORS preference domain(s)."
+  print -u2 "No tuning settings were applied. The diagnostic folder is:"
+  print -u2 "  $BACKUP_DIR"
+  exit 1
+fi
 
 cat > "$BACKUP_DIR/restore-settings.sh" <<'RESTORE'
 #!/bin/zsh
@@ -81,6 +132,7 @@ set -u
 
 SCRIPT_DIR="${0:A:h}"
 PREF_DIR="$SCRIPT_DIR/preferences"
+integer RESTORE_ERRORS=0
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   print -u2 "This restore script is for macOS only."
@@ -91,13 +143,26 @@ restore_domain() {
   local domain="$1"
   local filename="$2"
   local source="$PREF_DIR/$filename.plist"
+  local absent="$PREF_DIR/$filename.absent"
 
   if [[ -f "$source" ]]; then
     if defaults import "$domain" "$source" >/dev/null 2>&1; then
       print "Restored $domain"
     else
       print -u2 "Could not restore $domain"
+      (( RESTORE_ERRORS++ ))
     fi
+  elif [[ -f "$absent" ]]; then
+    if ! defaults read "$domain" >/dev/null 2>&1 ||
+        defaults delete "$domain" >/dev/null 2>&1; then
+      print "Restored $domain (absent before tuning)"
+    else
+      print -u2 "Could not remove $domain"
+      (( RESTORE_ERRORS++ ))
+    fi
+  else
+    print -u2 "Missing backup data for $domain"
+    (( RESTORE_ERRORS++ ))
   fi
 }
 
@@ -116,9 +181,19 @@ killall Finder 2>/dev/null || true
 killall SystemUIServer 2>/dev/null || true
 
 print ""
+if (( RESTORE_ERRORS > 0 )); then
+  print -u2 "Restore finished with $RESTORE_ERRORS error(s). Review the messages above."
+  exit 1
+fi
+
 print "Restore complete. Log out and back in, or restart the Mac, to finish."
 RESTORE
-chmod +x "$BACKUP_DIR/restore-settings.sh"
+if [[ ! -s "$BACKUP_DIR/restore-settings.sh" ]] ||
+    ! /bin/zsh -n "$BACKUP_DIR/restore-settings.sh" ||
+    ! chmod +x "$BACKUP_DIR/restore-settings.sh"; then
+  print -u2 "Could not create a valid restore script. No settings were changed."
+  exit 1
+fi
 
 integer APPLIED=0
 integer SKIPPED=0
@@ -154,7 +229,7 @@ apply_pref "Shorten initial key-repeat delay" defaults write NSGlobalDomain Init
 apply_pref "Speed up key repeat" defaults write NSGlobalDomain KeyRepeat -int 2
 
 # Dock and Mission Control feel
-# Deliberately do not touch autohide, orientation, size, magnification, or contents.
+# Deliberately do not touch autohide, orientation, size, magnification, or pinned items.
 apply_pref "Disable Dock app-launch animation" defaults write com.apple.dock launchanim -bool false
 apply_pref "Shorten Mission Control animation" defaults write com.apple.dock expose-animation-duration -float 0.10
 apply_pref "Use the simpler scale minimize effect" defaults write com.apple.dock mineffect -string scale
@@ -182,7 +257,7 @@ killall SystemUIServer 2>/dev/null || true
 print ""
 print "Done. Applied: $APPLIED   Skipped: $SKIPPED"
 print ""
-print "The Dock's visibility, position, size, magnification, and contents were left alone."
+print "The Dock's visibility, position, size, magnification, and pinned items were left alone."
 print "Apple Silicon power, battery, standby, and sleep settings were left alone."
 print ""
 print "Your before-state report and restore script are here:"
