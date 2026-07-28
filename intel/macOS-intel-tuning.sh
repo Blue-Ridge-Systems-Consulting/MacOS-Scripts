@@ -47,16 +47,25 @@ while true; do
   kill -0 "$$" || exit
  done 2>/dev/null &
 SUDO_KEEPALIVE_PID=$!
-trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true' EXIT INT TERM
+cleanup_sudo_keepalive() {
+  kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
+}
+trap cleanup_sudo_keepalive EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 BACKUP_DIR="$HOME/Desktop/macos-intel-tune-backup-$(date +%Y%m%d-%H%M%S)"
 PREF_DIR="$BACKUP_DIR/preferences"
-mkdir -p "$PREF_DIR"
+
+if ! mkdir -m 700 "$BACKUP_DIR" || ! mkdir -m 700 "$PREF_DIR"; then
+  print -u2 "Could not create a new backup folder. No settings were changed."
+  exit 1
+fi
 
 print "Saving current settings to:"
 print "  $BACKUP_DIR"
 
-{
+if ! {
   print "### Date"
   date
   print ""
@@ -77,43 +86,115 @@ print "  $BACKUP_DIR"
   print ""
   print "### Disk free"
   df -h /
-} > "$BACKUP_DIR/before-report.txt"
+} > "$BACKUP_DIR/before-report.txt"; then
+  print -u2 "Could not save the before-state report. No settings were changed."
+  exit 1
+fi
+
+domain_exists() {
+  local host_scope="$1"
+  local domain="$2"
+  local domains
+
+  if [[ "$host_scope" == "current" ]]; then
+    domains="$(defaults -currentHost domains 2>/dev/null)" || return 2
+  else
+    domains="$(defaults domains 2>/dev/null)" || return 2
+  fi
+
+  awk -v wanted="$domain" '
+    BEGIN { RS="," }
+    {
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", $0)
+      if ($0 == wanted) {
+        found=1
+        exit
+      }
+    }
+    END { exit(found ? 0 : 1) }
+  ' <<< "$domains"
+}
 
 backup_domain() {
   local domain="$1"
   local filename="$2"
-  defaults export "$domain" "$PREF_DIR/$filename.plist" >/dev/null 2>&1 || true
+  local plist="$PREF_DIR/$filename.plist"
+  local absent="$PREF_DIR/$filename.absent"
+
+  if defaults export "$domain" "$plist" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  domain_exists normal "$domain"
+  local domain_status=$?
+
+  if (( domain_status == 1 )); then
+    if : > "$absent"; then
+      return 0
+    fi
+  fi
+
+  print -u2 "Could not back up $domain."
+  return 1
 }
 
 backup_current_host_domain() {
   local domain="$1"
   local filename="$2"
-  defaults -currentHost export "$domain" "$PREF_DIR/$filename.plist" >/dev/null 2>&1 || true
+  local plist="$PREF_DIR/$filename.plist"
+  local absent="$PREF_DIR/$filename.absent"
+
+  if defaults -currentHost export "$domain" "$plist" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  domain_exists current "$domain"
+  local domain_status=$?
+
+  if (( domain_status == 1 )); then
+    if : > "$absent"; then
+      return 0
+    fi
+  fi
+
+  print -u2 "Could not back up $domain (current host)."
+  return 1
 }
 
-backup_domain NSGlobalDomain NSGlobalDomain
-backup_domain com.apple.universalaccess com.apple.universalaccess
-backup_domain com.apple.dock com.apple.dock
-backup_domain com.apple.finder com.apple.finder
-backup_domain com.apple.desktopservices com.apple.desktopservices
-backup_domain com.apple.Safari com.apple.Safari
-backup_domain com.apple.print.PrintingPrefs com.apple.print.PrintingPrefs
-backup_current_host_domain com.apple.ImageCapture com.apple.ImageCapture-currentHost
+integer BACKUP_ERRORS=0
+backup_domain NSGlobalDomain NSGlobalDomain || (( BACKUP_ERRORS++ ))
+backup_domain com.apple.universalaccess com.apple.universalaccess || (( BACKUP_ERRORS++ ))
+backup_domain com.apple.dock com.apple.dock || (( BACKUP_ERRORS++ ))
+backup_domain com.apple.finder com.apple.finder || (( BACKUP_ERRORS++ ))
+backup_domain com.apple.desktopservices com.apple.desktopservices || (( BACKUP_ERRORS++ ))
+backup_domain com.apple.Safari com.apple.Safari || (( BACKUP_ERRORS++ ))
+backup_domain com.apple.print.PrintingPrefs com.apple.print.PrintingPrefs || (( BACKUP_ERRORS++ ))
+backup_current_host_domain com.apple.ImageCapture com.apple.ImageCapture-currentHost || (( BACKUP_ERRORS++ ))
+
+if (( BACKUP_ERRORS > 0 )); then
+  print -u2 "Backup failed for $BACKUP_ERRORS preference domain(s)."
+  print -u2 "No tuning settings were applied. The diagnostic folder is:"
+  print -u2 "  $BACKUP_DIR"
+  exit 1
+fi
 
 ###############################################################################
 # Capture the exact power values changed by this script
 ###############################################################################
 
 PMSET_REPORT="$BACKUP_DIR/pmset-before.txt"
-pmset -g custom > "$PMSET_REPORT" 2>/dev/null || true
+if ! pmset -g custom > "$PMSET_REPORT" 2>/dev/null || [[ ! -s "$PMSET_REPORT" ]]; then
+  print -u2 "Could not save the current power settings. No tuning settings were applied."
+  exit 1
+fi
 
 pm_value() {
   local section="$1"
   local key="$2"
 
   awk -v section="$section" -v key="$key" '
-    $0 ~ "^" section ":" { active=1; next }
-    /^[^[:space:]].*:$/ { active=0 }
+    $0 ~ "^[[:space:]]*" section ":[[:space:]]*$" { active=1; next }
+    /^[[:space:]]*[^[:space:]].*:[[:space:]]*$/ { active=0 }
     active && $1 == key { print $2; exit }
   ' "$PMSET_REPORT"
 }
@@ -127,7 +208,7 @@ write_pm_restore() {
   for key in "${keys[@]}"; do
     value="$(pm_value "$section" "$key")"
     if [[ -n "$value" ]]; then
-      print "sudo pmset $mode $key $value" >> "$BACKUP_DIR/restore-power-settings.sh"
+      print -r -- "restore_power $mode $key $value" >> "$BACKUP_DIR/restore-power-settings.sh"
     fi
   done
 }
@@ -136,6 +217,7 @@ cat > "$BACKUP_DIR/restore-power-settings.sh" <<'POWERRESTORE'
 #!/bin/zsh
 emulate -L zsh
 set -u
+integer RESTORE_ERRORS=0
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   print -u2 "This restore script is for macOS only."
@@ -149,6 +231,19 @@ fi
 
 sudo -v || exit 1
 print "Restoring the Intel Mac power settings saved before tuning..."
+
+restore_power() {
+  local mode="$1"
+  local key="$2"
+  local value="$3"
+
+  if sudo pmset "$mode" "$key" "$value"; then
+    print "  [restored] $mode $key=$value"
+  else
+    print -u2 "  [warning] Could not restore $mode $key=$value"
+    (( RESTORE_ERRORS++ ))
+  fi
+}
 POWERRESTORE
 
 write_pm_restore -b "Battery Power"
@@ -156,10 +251,20 @@ write_pm_restore -c "AC Power"
 write_pm_restore -u "UPS Power"
 
 cat >> "$BACKUP_DIR/restore-power-settings.sh" <<'POWERRESTORE'
+if (( RESTORE_ERRORS > 0 )); then
+  print -u2 "Power restore finished with $RESTORE_ERRORS error(s)."
+  exit 1
+fi
+
 print "Power settings restored."
 pmset -g custom || true
 POWERRESTORE
-chmod +x "$BACKUP_DIR/restore-power-settings.sh"
+if [[ ! -s "$BACKUP_DIR/restore-power-settings.sh" ]] ||
+    ! /bin/zsh -n "$BACKUP_DIR/restore-power-settings.sh" ||
+    ! chmod +x "$BACKUP_DIR/restore-power-settings.sh"; then
+  print -u2 "Could not create a valid power restore script. No settings were changed."
+  exit 1
+fi
 
 ###############################################################################
 # Generate the complete restore script
@@ -173,6 +278,7 @@ set -o pipefail
 
 SCRIPT_DIR="${0:A:h}"
 PREF_DIR="$SCRIPT_DIR/preferences"
+integer RESTORE_ERRORS=0
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   print -u2 "This restore script is for macOS only."
@@ -188,13 +294,26 @@ restore_domain() {
   local domain="$1"
   local filename="$2"
   local source="$PREF_DIR/$filename.plist"
+  local absent="$PREF_DIR/$filename.absent"
 
   if [[ -f "$source" ]]; then
     if defaults import "$domain" "$source" >/dev/null 2>&1; then
       print "  [restored] $domain"
     else
       print -u2 "  [warning] Could not restore $domain"
+      (( RESTORE_ERRORS++ ))
     fi
+  elif [[ -f "$absent" ]]; then
+    if ! defaults read "$domain" >/dev/null 2>&1 ||
+        defaults delete "$domain" >/dev/null 2>&1; then
+      print "  [restored] $domain (absent before tuning)"
+    else
+      print -u2 "  [warning] Could not remove $domain"
+      (( RESTORE_ERRORS++ ))
+    fi
+  else
+    print -u2 "  [warning] Missing backup data for $domain"
+    (( RESTORE_ERRORS++ ))
   fi
 }
 
@@ -202,13 +321,26 @@ restore_current_host_domain() {
   local domain="$1"
   local filename="$2"
   local source="$PREF_DIR/$filename.plist"
+  local absent="$PREF_DIR/$filename.absent"
 
   if [[ -f "$source" ]]; then
     if defaults -currentHost import "$domain" "$source" >/dev/null 2>&1; then
       print "  [restored] $domain (current host)"
     else
       print -u2 "  [warning] Could not restore $domain (current host)"
+      (( RESTORE_ERRORS++ ))
     fi
+  elif [[ -f "$absent" ]]; then
+    if ! defaults -currentHost read "$domain" >/dev/null 2>&1 ||
+        defaults -currentHost delete "$domain" >/dev/null 2>&1; then
+      print "  [restored] $domain (current host; absent before tuning)"
+    else
+      print -u2 "  [warning] Could not remove $domain (current host)"
+      (( RESTORE_ERRORS++ ))
+    fi
+  else
+    print -u2 "  [warning] Missing backup data for $domain (current host)"
+    (( RESTORE_ERRORS++ ))
   fi
 }
 
@@ -223,9 +355,10 @@ restore_domain com.apple.print.PrintingPrefs com.apple.print.PrintingPrefs
 restore_current_host_domain com.apple.ImageCapture com.apple.ImageCapture-currentHost
 
 if [[ -x "$SCRIPT_DIR/restore-power-settings.sh" ]]; then
-  "$SCRIPT_DIR/restore-power-settings.sh"
+  "$SCRIPT_DIR/restore-power-settings.sh" || (( RESTORE_ERRORS++ ))
 else
   print -u2 "Warning: restore-power-settings.sh was not found."
+  (( RESTORE_ERRORS++ ))
 fi
 
 killall cfprefsd 2>/dev/null || true
@@ -234,9 +367,19 @@ killall Finder 2>/dev/null || true
 killall SystemUIServer 2>/dev/null || true
 
 print ""
+if (( RESTORE_ERRORS > 0 )); then
+  print -u2 "Restore finished with $RESTORE_ERRORS error(s). Review the messages above."
+  exit 1
+fi
+
 print "Restore complete. Log out and back in, or restart the Mac, to finish."
 RESTORE
-chmod +x "$BACKUP_DIR/restore-settings.sh"
+if [[ ! -s "$BACKUP_DIR/restore-settings.sh" ]] ||
+    ! /bin/zsh -n "$BACKUP_DIR/restore-settings.sh" ||
+    ! chmod +x "$BACKUP_DIR/restore-settings.sh"; then
+  print -u2 "Could not create a valid restore script. No settings were changed."
+  exit 1
+fi
 
 ###############################################################################
 # Apply tuning
@@ -258,15 +401,36 @@ apply_pref() {
   fi
 }
 
-apply_power() {
+apply_power_setting() {
   local description="$1"
-  shift
+  local key="$2"
+  local desired="$3"
+  local mode section previous
+  local -a modes=(-b -c -u)
+  local -a sections=("Battery Power" "AC Power" "UPS Power")
+  integer supported=0
+  integer failed=0
+  integer i
 
-  if sudo "$@" >/dev/null 2>&1; then
+  for i in {1..3}; do
+    mode="${modes[$i]}"
+    section="${sections[$i]}"
+    previous="$(pm_value "$section" "$key")"
+
+    if [[ -n "$previous" ]]; then
+      (( supported++ ))
+      sudo pmset "$mode" "$key" "$desired" >/dev/null 2>&1 || (( failed++ ))
+    fi
+  done
+
+  if (( supported == 0 )); then
+    print "  [skip] $description (not supported on this Mac)"
+    (( SKIPPED++ ))
+  elif (( failed == 0 )); then
     print "  [done] $description"
     (( APPLIED++ ))
   else
-    print "  [skip] $description"
+    print "  [skip] $description ($failed power profile(s) failed)"
     (( SKIPPED++ ))
   fi
 }
@@ -288,7 +452,7 @@ apply_pref "Disable smart quote substitution" defaults write NSGlobalDomain NSAu
 apply_pref "Disable smart dash substitution" defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
 apply_pref "Disable automatic period substitution" defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
 
-# Deliberately do not touch Dock autohide, orientation, size, magnification, or contents.
+# Deliberately do not touch Dock autohide, orientation, size, magnification, or pinned items.
 apply_pref "Disable Dock app-launch animation" defaults write com.apple.dock launchanim -bool false
 apply_pref "Shorten Mission Control animation" defaults write com.apple.dock expose-animation-duration -float 0.10
 apply_pref "Remove suggested and recent apps from the Dock" defaults write com.apple.dock show-recents -bool false
@@ -309,11 +473,11 @@ apply_pref "Do not open Image Capture automatically" defaults -currentHost write
 
 print ""
 print "Adjusting older Intel Mac power behavior..."
-apply_power "Disable Power Nap" pmset -a powernap 0
-apply_power "Disable sleep TCP keepalive" pmset -a tcpkeepalive 0
-apply_power "Disable standby transition" pmset -a standby 0
-apply_power "Disable automatic hibernation power-off" pmset -a autopoweroff 0
-apply_power "Use memory-only sleep" pmset -a hibernatemode 0
+apply_power_setting "Disable Power Nap" powernap 0
+apply_power_setting "Disable sleep TCP keepalive" tcpkeepalive 0
+apply_power_setting "Disable standby transition" standby 0
+apply_power_setting "Disable automatic hibernation power-off" autopoweroff 0
+apply_power_setting "Use memory-only sleep" hibernatemode 0
 
 killall cfprefsd 2>/dev/null || true
 killall Dock 2>/dev/null || true
@@ -323,7 +487,7 @@ killall SystemUIServer 2>/dev/null || true
 print ""
 print "Done. Applied: $APPLIED   Skipped: $SKIPPED"
 print ""
-print "The Dock's visibility, position, size, magnification, and contents were left alone."
+print "The Dock's visibility, position, size, magnification, and pinned items were left alone."
 print ""
 print "Your before-state report and complete restore scripts are here:"
 print "  $BACKUP_DIR"

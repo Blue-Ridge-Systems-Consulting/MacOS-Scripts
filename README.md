@@ -26,7 +26,7 @@ For Macs with an M-series processor, use the files in [`apple-silicon/`](apple-s
 
 The Apple Silicon version deliberately leaves the following alone:
 
-- Dock visibility, position, size, magnification, and contents
+- Dock visibility, position, size, magnification, and pinned items
 - Battery charging behavior
 - Standby, hibernation, and sleep behavior
 - Personal files and installed applications
@@ -50,6 +50,8 @@ For Intel-based Macs, use the files in [`intel/`](intel/).
 The Intel setup was inspired by the difference it made on a 2015 Intel MacBook Pro, where it helped the machine feel dramatically more responsive in everyday use.
 
 Unlike the Apple Silicon version, the Intel script also adjusts a small set of older Intel-oriented power settings. Before doing so, the revised script now saves the exact Battery and AC values so they can be restored later.
+
+The Intel script intentionally uses memory-only sleep. On a notebook, an empty battery or other loss of power while the Mac is asleep can therefore lose the open session. This is the responsiveness-versus-protection tradeoff behind the aggressive Intel setup.
 
 ## Apple Silicon Quick Start
 
@@ -127,6 +129,8 @@ Replace the example folder name with the actual backup folder created during the
 
 The restore script imports the saved preference domains and restarts the affected macOS preference services. Log out and back in, or restart the Mac, after restoring.
 
+Restoration returns each affected preference domain to its saved before-state. Any changes made later in those same domains are also rolled back.
+
 ## Restoring Intel Settings
 
 The revised Intel tuning script creates a complete restore package containing:
@@ -173,7 +177,7 @@ They do not:
 - Clear caches as a fake performance cure
 - Scrape personal data
 - Hide or rearrange the Dock
-- Change the Dock position, size, magnification, or contents
+- Change the Dock position, size, magnification, or pinned items
 - Replace normal maintenance, hardware repair, or a full backup when those are actually needed
 
 ## Important Note
