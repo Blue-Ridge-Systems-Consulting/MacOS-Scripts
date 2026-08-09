@@ -1,0 +1,20 @@
+# Blue Ridge Systems Consulting - Intel Mac HARDCORE tune
+#
+# Paste this into Terminal from the root of the MacOS-Scripts repository.
+# It runs the existing safe Intel tune first, then the aggressive hardcore layer.
+#
+# Recommended:
+#   cd ~/MacOS-Scripts
+#
+chmod +x intel/macOS-intel-tuning.sh intel/macOS-intel-hardcore.sh intel/macOS-intel-hardcore-restore.sh
+./intel/macOS-intel-tuning.sh && ./intel/macOS-intel-hardcore.sh
+
+# After both complete, restart the Mac.
+#
+# The hardcore script creates a backup folder on the Desktop named like:
+#   macos-intel-hardcore-backup-YYYYMMDD-HHMMSS
+#
+# To roll back ONLY the hardcore layer later:
+#   ./intel/macOS-intel-hardcore-restore.sh ~/Desktop/macos-intel-hardcore-backup-YYYYMMDD-HHMMSS
+#
+# Your original macOS-intel-tuning.sh still has its own independent backup/restore path.
