@@ -10,6 +10,10 @@ emulate -L zsh
 set -u
 set -o pipefail
 
+# Use a known-good macOS command path. In zsh, "path" is a special array tied to PATH,
+# so this script deliberately avoids using "path" as a normal loop variable.
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
 if [[ ! -t 0 || ! -t 1 ]]; then
   print -u2 "Please run this from the macOS Terminal app."
   exit 1
@@ -162,7 +166,7 @@ print ""
 print "== Spotlight strategy =="
 # Keep Spotlight itself working, but exclude high-churn directories if they exist.
 integer SPOTLIGHT_EXCLUDES=0
-for path in \
+for target_path in \
   "$HOME/Library/Caches" \
   "$HOME/.cache" \
   "$HOME/.Trash" \
@@ -171,13 +175,13 @@ for path in \
   "$HOME/Virtual Machines.localized" \
   "$HOME/Parallels" \
   "$HOME/VMware"; do
-  if [[ -e "$path" ]]; then
-    if sudo mdutil -i off "$path" >/dev/null 2>&1; then
-      print "  [done] Excluded indexing for $path"
+  if [[ -e "$target_path" ]]; then
+    if sudo mdutil -i off "$target_path" >/dev/null 2>&1; then
+      print "  [done] Excluded indexing for $target_path"
       (( SPOTLIGHT_EXCLUDES++ ))
       (( APPLIED++ ))
     else
-      print "  [skip] Could not change Spotlight indexing for $path"
+      print "  [skip] Could not change Spotlight indexing for $target_path"
       (( SKIPPED++ ))
     fi
   fi
@@ -196,19 +200,30 @@ if [[ -d "$HOME/Library/Caches" ]]; then
 fi
 
 # Thin local Time Machine snapshots only when they exist and disk pressure is meaningful.
-FREE_PCT=$(df -k / | awk 'NR==2 {gsub(/%/,"",$5); print 100-$5}')
-if [[ -n "$FREE_PCT" && "$FREE_PCT" -lt 15 ]]; then
-  if tmutil listlocalsnapshots / 2>/dev/null | grep -q 'com.apple.TimeMachine'; then
-    if sudo tmutil thinlocalsnapshots / 20000000000 4 >/dev/null 2>&1; then
-      print "  [done] Thinned local Time Machine snapshots because free space is below 15%"
-      (( APPLIED++ ))
+FREE_PCT=""
+if command -v df >/dev/null 2>&1 && command -v awk >/dev/null 2>&1; then
+  FREE_PCT="$(df -k / 2>/dev/null | awk 'NR==2 {gsub(/%/,"",$5); print 100-$5}')"
+fi
+
+if [[ "$FREE_PCT" == <-> ]]; then
+  if (( FREE_PCT < 15 )); then
+    if tmutil listlocalsnapshots / 2>/dev/null | grep -q 'com.apple.TimeMachine'; then
+      if sudo tmutil thinlocalsnapshots / 20000000000 4 >/dev/null 2>&1; then
+        print "  [done] Thinned local Time Machine snapshots because free space is below 15%"
+        (( APPLIED++ ))
+      else
+        print "  [skip] Could not thin local Time Machine snapshots"
+        (( SKIPPED++ ))
+      fi
     else
-      print "  [skip] Could not thin local Time Machine snapshots"
-      (( SKIPPED++ ))
+      print "  [info] Disk free space is below 15%, but no Time Machine local snapshots were found"
     fi
+  else
+    print "  [info] Disk free space is healthy (${FREE_PCT}% free); local snapshots left alone"
   fi
 else
-  print "  [info] Disk free space is healthy; local snapshots left alone"
+  print "  [warning] Could not determine disk free space; local snapshots left alone"
+  (( SKIPPED++ ))
 fi
 
 print ""
@@ -224,10 +239,10 @@ print "== Background workload inventory =="
   ls -1 /Library/LaunchDaemons 2>/dev/null || true
   print ""
   print "### Top CPU processes"
-  ps -Ao pid,ppid,%cpu,%mem,comm -r | head -20
+  ps -Ao pid,ppid,%cpu,%mem,comm -r 2>/dev/null | head -20 || true
   print ""
   print "### Top memory processes"
-  ps -Ao pid,ppid,%cpu,%mem,comm -m | head -20
+  ps -Ao pid,ppid,%cpu,%mem,comm -m 2>/dev/null | head -20 || true
 } > "$BACKUP_DIR/background-audit.txt"
 print "  [done] Background workload audit saved"
 (( APPLIED++ ))
