@@ -4,18 +4,16 @@ Northstar Guard is a lightweight, clean-room macOS monitor built with Objective-
 
 ![Northstar Guard dashboard](northstar-guard-dashboard.png)
 
-![Northstar Guard known-good findings](northstar-guard-trusted-known-good.png)
-
 ## What it does
 
 - Runs as a per-user macOS LaunchAgent, so monitoring continues when the dashboard is closed.
 - Provides native dashboard controls to start or stop monitoring and request a focused or full configured-scope scan.
 - Uses a 12% average CPU target, reduced process priority, and a 10% physical-memory high-water limit.
 - Creates timestamped Markdown reports with an executive summary, coverage, findings, recommendations, and data gaps.
-- Lets you select an alert and mark it as a trusted known-good item; trusted paths are excluded from future alerts and counted in reports.
+- Lets you select an alert and mark it as trusted; trusted paths are excluded from future alerts and counted in reports.
 - Never deletes, quarantines, or uploads scanned files.
 
-## Trusted known-good findings
+## Trusted findings
 
 Select a finding in the dashboard and choose **Trust selected** only after independently confirming that the item is expected and safe. Northstar Guard records the path, original finding context, and trust time in `~/Library/Application Support/NorthstarGuard/trusted-known-good.json`.
 
