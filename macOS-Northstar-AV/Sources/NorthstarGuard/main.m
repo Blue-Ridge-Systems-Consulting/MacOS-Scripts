@@ -11,6 +11,7 @@ static NSURL *support(void) { return [NSURL fileURLWithPath:[NSHomeDirectory() s
 static NSURL *controlURL(void) { return [support() URLByAppendingPathComponent:@"control.json"]; }
 static NSURL *statusURL(void) { return [support() URLByAppendingPathComponent:@"status.json"]; }
 static NSURL *findingsURL(void) { return [support() URLByAppendingPathComponent:@"findings.jsonl"]; }
+static NSURL *trustedURL(void) { return [support() URLByAppendingPathComponent:@"trusted-known-good.json"]; }
 
 static NSString *now(void) { NSISO8601DateFormatter *f=[NSISO8601DateFormatter new]; f.timeZone=[NSTimeZone timeZoneWithName:@"America/New_York"]; return [f stringFromDate:NSDate.date]; }
 static NSString *stamp(void) { NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone timeZoneWithName:@"America/New_York"]; f.dateFormat=@"yyyyMMdd-HHmmss"; return [f stringFromDate:NSDate.date]; }
@@ -18,8 +19,9 @@ static NSDictionary *readJSON(NSURL *u) { NSData *d=[NSData dataWithContentsOfUR
 static BOOL writeJSON(NSDictionary *x, NSURL *u) { NSData *d=[NSJSONSerialization dataWithJSONObject:x options:NSJSONWritingPrettyPrinted error:nil]; return d&&[d writeToURL:u options:NSDataWritingAtomic error:nil]; }
 static NSURL *configURL(void) { return [support() URLByAppendingPathComponent:@"config.json"]; }
 static NSURL *reportsURL(void) { NSString *path=readJSON(configURL())[@"reportsDirectory"]; if(![path isKindOfClass:NSString.class]||!path.length) path=[NSHomeDirectory() stringByAppendingPathComponent:@"NorthstarGuardReports"]; return [NSURL fileURLWithPath:path isDirectory:YES]; }
-static NSMutableDictionary *control(void) { NSMutableDictionary *x=[readJSON(controlURL()) mutableCopy]; if(!x[@"monitoringEnabled"]) x[@"monitoringEnabled"]=@YES; return x; }
+static NSMutableDictionary *control(void) { NSMutableDictionary *x=[readJSON(controlURL()) mutableCopy]; if(![x objectForKey:@"monitoringEnabled"]) x[@"monitoringEnabled"]=@YES; return x; }
 static void status(NSDictionary *x) { writeJSON(x,statusURL()); }
+static NSSet *trustedPaths(void) { NSArray *items=readJSON(trustedURL())[@"items"]; NSMutableSet *paths=[NSMutableSet set]; for(NSDictionary *item in items) if([item[@"path"] isKindOfClass:NSString.class]) [paths addObject:item[@"path"]]; return paths; }
 
 static BOOL approved(NSURL *u) { NSString *desktopAlias=[NSHomeDirectory() stringByAppendingPathComponent:@"Desktop/Northstar Guard.app"]; return [u.path hasPrefix:[NSHomeDirectory() stringByAppendingPathComponent:@"Downloads/MeshAgent.mpkg/"]] || [u.path isEqualToString:desktopAlias] || [u.path containsString:@"/Northstar Guard.app/"]; }
 static double cpuSeconds(void) { struct rusage r; getrusage(RUSAGE_SELF,&r); return r.ru_utime.tv_sec+r.ru_utime.tv_usec/1e6+r.ru_stime.tv_sec+r.ru_stime.tv_usec/1e6; }
@@ -28,8 +30,8 @@ static void pace(CFAbsoluteTime wall,double cpu) { double elapsed=CFAbsoluteTime
 static BOOL signedCode(NSURL *u) { SecStaticCodeRef c=NULL; if(SecStaticCodeCreateWithPath((__bridge CFURLRef)u,kSecCSDefaultFlags,&c)!=errSecSuccess||!c)return NO; OSStatus r=SecStaticCodeCheckValidity(c,kSecCSDefaultFlags,NULL); CFRelease(c); return r==errSecSuccess; }
 
 static void logFinding(NSDictionary *f) { NSData *d=[NSJSONSerialization dataWithJSONObject:f options:0 error:nil]; if(!d)return; NSMutableData *line=[d mutableCopy]; [line appendData:[@"\n" dataUsingEncoding:NSUTF8StringEncoding]]; NSURL *u=findingsURL(); if([[NSFileManager defaultManager] fileExistsAtPath:u.path]) { NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:u.path]; [h seekToEndOfFile]; [h writeData:line]; [h closeFile]; } else [line writeToURL:u options:NSDataWritingAtomic error:nil]; }
-static NSDictionary *inspect(NSURL *u, NSUInteger *large) {
-    if(approved(u))return nil; NSDictionary *v=[u resourceValuesForKeys:@[NSURLIsRegularFileKey,NSURLFileSizeKey] error:nil]; if(![v[NSURLIsRegularFileKey] boolValue])return nil; if([v[NSURLFileSizeKey] unsignedLongLongValue]>kMaxBytes){(*large)++;return nil;}
+static NSDictionary *inspect(NSURL *u, NSUInteger *large, NSSet *trusted) {
+    if(approved(u)||[trusted containsObject:u.path])return nil; NSDictionary *v=[u resourceValuesForKeys:@[NSURLIsRegularFileKey,NSURLFileSizeKey] error:nil]; if(![v[NSURLIsRegularFileKey] boolValue])return nil; if([v[NSURLFileSizeKey] unsignedLongLongValue]>kMaxBytes){(*large)++;return nil;}
     NSString *n=u.lastPathComponent.lowercaseString,*e=u.pathExtension.lowercaseString; NSSet *risky=[NSSet setWithArray:@[@"app",@"pkg",@"dmg",@"command",@"sh",@"zsh",@"bash",@"py",@"js",@"jar",@"iso"]]; NSMutableArray *reasons=[NSMutableArray array];
     if([risky containsObject:e]&&[u.path containsString:@"/Downloads/"])[reasons addObject:@"executable or installer arrived in Downloads"];
     if([n containsString:@".pdf."]||[n containsString:@".jpg."]||[n containsString:@".doc."])[reasons addObject:@"misleading double extension"];
@@ -38,14 +40,14 @@ static NSDictionary *inspect(NSURL *u, NSUInteger *large) {
 }
 
 static NSDictionary *scan(NSArray *roots, NSUInteger limit, NSString *mode) {
-    CFAbsoluteTime wall=CFAbsoluteTimeGetCurrent(); double cpu=cpuSeconds(); NSUInteger examined=0,large=0; BOOL limited=NO,memory=NO; NSMutableArray *findings=[NSMutableArray array],*covered=[NSMutableArray array]; NSFileManager *fm=NSFileManager.defaultManager;
-    for(NSURL *root in roots) { if(![fm fileExistsAtPath:root.path])continue; [covered addObject:root.path]; NSDirectoryEnumerator *en=[fm enumeratorAtURL:root includingPropertiesForKeys:@[NSURLIsRegularFileKey,NSURLFileSizeKey] options:(NSDirectoryEnumerationSkipsHiddenFiles|NSDirectoryEnumerationSkipsPackageDescendants) errorHandler:nil]; for(NSURL *u in en) { if(examined>=limit){limited=YES;break;} if(overMemory()){memory=YES;break;} examined++; NSDictionary *f=inspect(u,&large); if(f)[findings addObject:f]; pace(wall,cpu); } if(limited||memory)break; }
-    return @{@"mode":mode,@"examined":@(examined),@"skippedLarge":@(large),@"limited":@(limited),@"memoryStopped":@(memory),@"roots":covered,@"findings":findings};
+    CFAbsoluteTime wall=CFAbsoluteTimeGetCurrent(); double cpu=cpuSeconds(); NSUInteger examined=0,large=0; BOOL limited=NO,memory=NO; NSMutableArray *findings=[NSMutableArray array],*covered=[NSMutableArray array]; NSFileManager *fm=NSFileManager.defaultManager; NSSet *trusted=trustedPaths();
+    for(NSURL *root in roots) { if(![fm fileExistsAtPath:root.path])continue; [covered addObject:root.path]; NSDirectoryEnumerator *en=[fm enumeratorAtURL:root includingPropertiesForKeys:@[NSURLIsRegularFileKey,NSURLFileSizeKey] options:(NSDirectoryEnumerationSkipsHiddenFiles|NSDirectoryEnumerationSkipsPackageDescendants) errorHandler:nil]; for(NSURL *u in en) { if(examined>=limit){limited=YES;break;} if(overMemory()){memory=YES;break;} examined++; NSDictionary *f=inspect(u,&large,trusted); if(f)[findings addObject:f]; pace(wall,cpu); } if(limited||memory)break; }
+    return @{@"mode":mode,@"examined":@(examined),@"skippedLarge":@(large),@"trustedCount":@(trusted.count),@"limited":@(limited),@"memoryStopped":@(memory),@"roots":covered,@"findings":findings};
 }
 
 static NSString *reportText(NSDictionary *r) {
     NSArray *findings=r[@"findings"],*roots=r[@"roots"]; NSString *title=[r[@"mode"] isEqual:@"full"]?@"Full configured-scope":@"Focused"; NSMutableString *s=[NSMutableString stringWithFormat:@"# Northstar Guard %@ Scan Report\n\n",title];
-    [s appendFormat:@"- **Generated:** `%@`\n- **Host:** `%@`\n- **Files examined:** `%@`\n- **Findings:** `%lu`\n- **Oversize files skipped:** `%@` (over 512 MiB)\n- **Scope:** configured high-risk locations only; not the whole disk\n\n",now(),NSProcessInfo.processInfo.hostName,r[@"examined"],(unsigned long)findings.count,r[@"skippedLarge"]];
+    [s appendFormat:@"- **Generated:** `%@`\n- **Host:** `%@`\n- **Files examined:** `%@`\n- **Findings:** `%lu`\n- **Trusted known-good exclusions:** `%@`\n- **Oversize files skipped:** `%@` (over 512 MiB)\n- **Scope:** configured high-risk locations only; not the whole disk\n\n",now(),NSProcessInfo.processInfo.hostName,r[@"examined"],(unsigned long)findings.count,r[@"trustedCount"],r[@"skippedLarge"]];
     [s appendString:@"## Executive Summary\n\n**Executive summary source:** Local deterministic heuristic based solely on this report’s evidence.\n\n"];
     [s appendString:findings.count? [NSString stringWithFormat:@"The scan recorded %lu item(s) for review. Alerts are not malware verdicts; validate origin, signature, and purpose before acting.\n\n",(unsigned long)findings.count] : @"No files matched the current heuristic rules in the configured scope. This does not prove the Mac is malware-free because this is not a signature-based antivirus verdict.\n\n"];
     [s appendString:@"## Priorities Requiring Attention\n\n"]; if(!findings.count)[s appendString:@"- No heuristic alerts were recorded.\n"]; for(NSDictionary *f in findings)[s appendFormat:@"- **%@** — `%@`: %@\n",f[@"severity"],f[@"path"],[f[@"reasons"] componentsJoinedByString:@"; "]];

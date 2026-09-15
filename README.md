@@ -75,7 +75,7 @@ The Intel script intentionally uses memory-only sleep. On a notebook, an empty b
 
 For a lightweight monitor focused on the locations most commonly used for downloads, documents, and persistence, see [`macOS-Northstar-AV/`](macOS-Northstar-AV/).
 
-Northstar Guard is a native macOS dashboard and per-user background monitor. It checks configured high-risk locations on a paced schedule, supports focused and full configured-scope scans, and writes timestamped Markdown reports. It is a clean-room heuristic monitor—not a replacement for a commercial signature-based antivirus suite—and it never deletes, quarantines, or uploads files.
+Northstar Guard is a native macOS dashboard and per-user background monitor. It checks configured high-risk locations on a paced schedule, supports focused and full configured-scope scans, and writes timestamped Markdown reports. It also lets you mark independently verified alerts as trusted known-good items so they are excluded from future findings. It is a clean-room heuristic monitor—not a replacement for a commercial signature-based antivirus suite—and it never deletes, quarantines, or uploads files.
 
 Use [`install-northstar-guard.sh`](macOS-Northstar-AV/install-northstar-guard.sh) after reviewing it. The installer compiles the included source locally with Apple’s Command Line Tools and installs the dashboard plus its LaunchAgent.
 
