@@ -1,0 +1,56 @@
+# Northstar Guard for macOS
+
+Northstar Guard is a lightweight, clean-room macOS monitor built with Objective-C, Foundation, AppKit, and the macOS Security framework. It is not a copy of NETGEAR Armor, Bitdefender, ClamAV, or another commercial antivirus product.
+
+![Northstar Guard dashboard](northstar-guard-dashboard.png)
+
+## What it does
+
+- Runs as a per-user macOS LaunchAgent, so monitoring continues when the dashboard is closed.
+- Provides native dashboard controls to start or stop monitoring and request a focused or full configured-scope scan.
+- Uses a 12% average CPU target, reduced process priority, and a 10% physical-memory high-water limit.
+- Creates timestamped Markdown reports with an executive summary, coverage, findings, recommendations, and data gaps.
+- Never deletes, quarantines, or uploads scanned files.
+
+## Scan coverage
+
+The live monitor performs a paced pass every 60 seconds and examines up to 250 entries per pass. It monitors these high-risk locations:
+
+- `~/Downloads`, `~/Desktop`, and `~/Documents`
+- `~/Library/LaunchAgents`
+- `/Library/LaunchAgents` and `/Library/LaunchDaemons`
+
+A focused scan covers the user-facing locations. A full-scope scan covers all configured locations above; it does not crawl the whole disk. Hidden paths, package descendants, and files larger than 512 MiB are excluded.
+
+## Detection engines
+
+Northstar Guard uses local, evidence-based checks:
+
+1. Downloaded executable and installer detection in `Downloads`.
+2. Misleading double-extension detection.
+3. macOS code-signature validation through the Security framework.
+
+These are alerts for review, not malware verdicts. Northstar Guard does not bundle ClamAV signatures or a commercial signature engine.
+
+## Install
+
+Install Apple Command Line Tools if necessary:
+
+```zsh
+xcode-select --install
+```
+
+Then clone this repository and run:
+
+```zsh
+chmod +x macOS-Northstar-AV/install-northstar-guard.sh
+./macOS-Northstar-AV/install-northstar-guard.sh
+```
+
+By default, reports are written to `~/NorthstarGuardReports`. To choose another local report location:
+
+```zsh
+./macOS-Northstar-AV/install-northstar-guard.sh --reports-dir "$HOME/SecurityReports/NorthstarGuard"
+```
+
+After installation, open `~/Applications/Northstar Guard.app`. Quitting that window does not stop the background LaunchAgent; use the dashboard’s **Stop** control to pause monitoring.
