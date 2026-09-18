@@ -79,6 +79,14 @@ Northstar Guard is a native macOS dashboard and per-user background monitor. It 
 
 Use [`install-northstar-guard.sh`](macOS-Northstar-AV/install-northstar-guard.sh) after reviewing it. The installer compiles the included source locally with Apple’s Command Line Tools and installs the dashboard plus its LaunchAgent.
 
+### Northstar Guard for Fedora COSMIC and servers
+
+The same clean-room Northstar Guard family is also available for Linux deployments. [`macOS-Northstar-AV/fedora-cosmic/`](macOS-Northstar-AV/fedora-cosmic/) contains the Fedora COSMIC GTK4 dashboard, CLI, user service, YARA rules, and installer. [`macOS-Northstar-AV/server-headless/`](macOS-Northstar-AV/server-headless/) is the GUI-free server and exit-node build with focused system paths, ClamAV/YARA checks, timestamped Markdown reports, and systemd resource ceilings for a low-overhead footprint.
+
+![Northstar Guard Fedora COSMIC dashboard](macOS-Northstar-AV/fedora-cosmic/northstar-guard-cosmic.png)
+
+![Northstar Guard server agent](macOS-Northstar-AV/server-headless/northstar-server-terminal.png)
+
 ## Before You Begin
 
 Create a Time Machine backup before making system changes.
