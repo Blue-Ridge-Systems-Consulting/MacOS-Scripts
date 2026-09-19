@@ -26,6 +26,7 @@ The live monitor performs a paced pass every 60 seconds and examines up to 250 e
 - `~/Downloads`, `~/Desktop`, and `~/Documents`
 - `~/Library/LaunchAgents`
 - `/Library/LaunchAgents` and `/Library/LaunchDaemons`
+- `~/Library/Preferences/com.apple.loginitems.plist` is tracked for persistence changes.
 
 A focused scan covers the user-facing locations. A full-scope scan covers all configured locations above; it does not crawl the whole disk. Hidden paths, package descendants, and files larger than 512 MiB are excluded.
 
@@ -36,6 +37,8 @@ Northstar Guard uses local, evidence-based checks:
 1. Downloaded executable and installer detection in `Downloads`.
 2. Misleading double-extension detection.
 3. macOS code-signature validation through the Security framework.
+4. Apple quarantine metadata and Gatekeeper review signals for downloaded installers/apps.
+5. New or changed LaunchAgents, LaunchDaemons, and login-item persistence entries.
 
 These are alerts for review, not malware verdicts. Northstar Guard does not bundle ClamAV signatures or a commercial signature engine.
 
