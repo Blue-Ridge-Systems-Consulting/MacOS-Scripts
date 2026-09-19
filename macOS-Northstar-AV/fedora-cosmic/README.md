@@ -17,7 +17,7 @@ sudo dnf install gcc gtk4-devel pkgconf-pkg-config clamav yara inotify-tools
 ./install.sh
 ```
 
-The installer enables a user systemd service with `CPUQuota=15%`, `MemoryMax=256M`,
+The installer enables a user systemd service with `CPUQuota=12%`, `MemoryMax=256M`,
 low priority, and no elevated privileges. The live monitor remains scoped to
 `~/Downloads`, `~/Desktop`, `~/Documents`, and `~/.config/autostart`. It scans
 on completed writes or moves instead of polling the whole disk. Each live

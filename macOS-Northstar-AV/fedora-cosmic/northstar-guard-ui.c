@@ -60,7 +60,7 @@ static void activate(GtkApplication *app, gpointer data) {
     const char *labels[] = {"Start Live Scan", "Stop Live Scan", "Quick Scan", "Full Scan", "Open Reports"};
     const char *commands[] = {"start", "stop", "scan quick", "scan full", NULL};
     for (int i=0;i<5;i++) { GtkWidget *b=gtk_button_new_with_label(labels[i]); gtk_widget_set_hexpand(b, TRUE); if(commands[i]) g_signal_connect(b,"clicked",G_CALLBACK(action),(gpointer)commands[i]); else g_signal_connect(b,"clicked",G_CALLBACK(open_reports),NULL); gtk_grid_attach(GTK_GRID(grid),b,i%2,i/2,1,1); }
-    GtkWidget *hint = gtk_label_new("Engines: ClamAV + YARA  •  CPU budget: 15%  •  User-folder monitoring"); gtk_box_append(GTK_BOX(box), hint);
+    GtkWidget *hint = gtk_label_new("Engines: ClamAV + YARA  •  CPU budget: 12%  •  User-folder monitoring"); gtk_box_append(GTK_BOX(box), hint);
     g_timeout_add_seconds(2, refresh_status, status); refresh_status(status); gtk_window_present(GTK_WINDOW(window));
 }
 
