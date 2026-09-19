@@ -1,0 +1,43 @@
+name: Build Northstar Guard release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semantic Northstar Guard version to package
+        required: true
+        default: 1.0.0
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build verified release bundle
+    # Internal runner; this job does not deploy to fleet machines.
+    runs-on: ray-macbook
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Build bundle and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          macOS-Northstar-AV/update-channel/build-release.sh "${{ inputs.version }}"
+
+      - name: Verify bundle and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="dist/northstar-guard-${{ inputs.version }}"
+          macOS-Northstar-AV/update-channel/verify-release.sh \
+            "$out/release-manifest.json" "$out/northstar-guard-${{ inputs.version }}.tar.gz"
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: northstar-guard-${{ inputs.version }}
+          path: dist/northstar-guard-${{ inputs.version }}/

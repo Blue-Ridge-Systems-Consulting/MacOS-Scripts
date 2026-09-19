@@ -8,13 +8,39 @@ APP_DIR="$HOME/Applications/Northstar Guard.app"
 LAUNCH_DIR="$HOME/Library/LaunchAgents"
 PLIST="$LAUNCH_DIR/com.rowens.northstar-guard.plist"
 REPORTS_DIR="${NORTHSTAR_GUARD_REPORT_DIR:-$HOME/NorthstarGuardReports}"
+ACTION="install"
+PACKAGE_VERSION="1.0.0"
 
-if [[ "${1:-}" == "--reports-dir" ]]; then
-  [[ -n "${2:-}" ]] || { print -u2 "Usage: $0 [--reports-dir DIRECTORY]"; exit 64; }
-  REPORTS_DIR="$2"
-elif [[ -n "${1:-}" ]]; then
-  print -u2 "Usage: $0 [--reports-dir DIRECTORY]"
-  exit 64
+case "${1:-}" in
+  "") ;;
+  --upgrade) ACTION="upgrade" ;;
+  --repair) ACTION="repair" ;;
+  --status) ACTION="status" ;;
+  --uninstall) ACTION="uninstall" ;;
+  --reports-dir)
+    [[ -n "${2:-}" ]] || { print -u2 "Usage: $0 --reports-dir DIRECTORY"; exit 64; }
+    REPORTS_DIR="$2" ;;
+  *) print -u2 "Usage: $0 [--upgrade|--repair|--status|--uninstall|--reports-dir DIRECTORY]"; exit 64 ;;
+esac
+
+UID_VALUE="$(id -u)"
+if [[ "$ACTION" == "status" ]]; then
+  launchctl print "gui/${UID_VALUE}/com.rowens.northstar-guard" 2>/dev/null || print "Northstar Guard service is not loaded."
+  [[ -f "$SUPPORT_DIR/status.json" ]] && cat "$SUPPORT_DIR/status.json" || print "No status snapshot yet."
+  exit 0
+fi
+if [[ "$ACTION" == "uninstall" ]]; then
+  launchctl bootout "gui/${UID_VALUE}/com.rowens.northstar-guard" 2>/dev/null || true
+  rm -f "$PLIST"
+  print "Northstar Guard service removed; reports, findings, trusted items, and configuration were retained at $SUPPORT_DIR."
+  exit 0
+fi
+if [[ "$ACTION" == "repair" ]]; then
+  [[ -f "$PLIST" ]] || { print -u2 "Northstar Guard is not installed."; exit 1; }
+  launchctl bootout "gui/${UID_VALUE}/com.rowens.northstar-guard" 2>/dev/null || true
+  launchctl bootstrap "gui/${UID_VALUE}" "$PLIST"
+  print "Northstar Guard service repaired and reloaded."
+  exit 0
 fi
 
 command -v clang >/dev/null || {
@@ -23,6 +49,14 @@ command -v clang >/dev/null || {
 }
 
 install -d "$SUPPORT_DIR" "$REPORTS_DIR" "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources" "$LAUNCH_DIR"
+
+if [[ "$ACTION" == "upgrade" ]]; then
+  BACKUP_DIR="$SUPPORT_DIR/backups/$(date +%Y%m%d-%H%M%S)"
+  install -d "$BACKUP_DIR"
+  for preserved in config.json control.json trusted-known-good.json; do
+    [[ -f "$SUPPORT_DIR/$preserved" ]] && cp -p "$SUPPORT_DIR/$preserved" "$BACKUP_DIR/$preserved"
+  done
+fi
 
 clang -fobjc-arc -O2 -Wall -Wextra -framework Foundation -framework Security \
   "$SCRIPT_DIR/Sources/NorthstarGuard/main.m" \
@@ -47,16 +81,20 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
 </dict></plist>
 PLIST
 
-cat > "$SUPPORT_DIR/config.json" <<EOF
+if [[ ! -f "$SUPPORT_DIR/config.json" ]]; then cat > "$SUPPORT_DIR/config.json" <<EOF
 {
   "reportsDirectory": "${REPORTS_DIR}"
 }
 EOF
-cat > "$SUPPORT_DIR/control.json" <<'EOF'
+fi
+if [[ ! -f "$SUPPORT_DIR/control.json" ]]; then cat > "$SUPPORT_DIR/control.json" <<'EOF'
 {
   "monitoringEnabled": true
 }
 EOF
+fi
+print -r -- "$PACKAGE_VERSION" > "$SUPPORT_DIR/agent-version"
+if [[ ! -f "$SUPPORT_DIR/agent-id" ]]; then print -r -- "mac-$(scutil --get ComputerName 2>/dev/null | tr '[:upper:] ' '[:lower:]-')-$(uuidgen | tr -d '-' | cut -c1-12)" > "$SUPPORT_DIR/agent-id"; fi
 cat > "$PLIST" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -78,6 +116,6 @@ launchctl bootout "gui/${UID_VALUE}/com.rowens.northstar-guard" 2>/dev/null || t
 launchctl bootstrap "gui/${UID_VALUE}" "$PLIST"
 open "$APP_DIR"
 
-print "Northstar Guard installed."
+print "Northstar Guard ${ACTION} complete (v${PACKAGE_VERSION})."
 print "Reports: $REPORTS_DIR"
 print "Use the dashboard to pause, start, or request focused/full-scope scans."

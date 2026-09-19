@@ -64,3 +64,7 @@ By default, reports are written to `~/NorthstarGuardReports`. To choose another 
 ```
 
 After installation, open `~/Applications/Northstar Guard.app`. Quitting that window does not stop the background LaunchAgent; use the dashboard’s **Stop** control to pause monitoring.
+
+## Versioned update channel
+
+The [`update-channel/`](update-channel/) directory contains the current semantic version, a release builder, and a checksum verifier. The manual `Build Northstar Guard release` workflow runs on the internal `ray-macbook` runner, produces a versioned bundle plus `release-manifest.json`, verifies the SHA-256 digest, and uploads the artifact. Fleet deployment is intentionally separate: after verification, use the platform installer’s `--upgrade` action so reports, findings, trusted items, and prior configuration remain protected by dated backups.
