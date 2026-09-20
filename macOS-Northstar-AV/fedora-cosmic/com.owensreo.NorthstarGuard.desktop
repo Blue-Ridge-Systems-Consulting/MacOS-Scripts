@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Northstar Guard
-Comment=Lightweight ClamAV and YARA monitor
-Exec=/home/ray/.local/bin/northstar-guard-ui
-Icon=security-high
-Terminal=false
-Categories=System;Security;
-Keywords=antivirus;malware;security;YARA;ClamAV;
