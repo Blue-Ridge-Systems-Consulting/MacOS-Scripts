@@ -71,22 +71,6 @@ The Intel script intentionally uses memory-only sleep. On a notebook, an empty b
 5. Review the completion report
 6. Restart the Mac
 
-## Northstar Guard: Lightweight Local Monitoring
-
-For a lightweight monitor focused on the locations most commonly used for downloads, documents, and persistence, see [`macOS-Northstar-AV/`](macOS-Northstar-AV/).
-
-Northstar Guard is a native macOS dashboard and per-user background monitor. It checks configured high-risk locations on a paced schedule, supports focused and full configured-scope scans, and writes timestamped Markdown reports. It also lets you mark independently verified alerts as trusted findings so they are excluded from future findings. It is a clean-room heuristic monitor—not a replacement for a commercial signature-based antivirus suite—and it never deletes, quarantines, or uploads files.
-
-Use [`install-northstar-guard.sh`](macOS-Northstar-AV/install-northstar-guard.sh) after reviewing it. The installer compiles the included source locally with Apple’s Command Line Tools and installs the dashboard plus its LaunchAgent.
-
-### Northstar Guard for Fedora COSMIC and servers
-
-The same clean-room Northstar Guard family is also available for Linux deployments. [`macOS-Northstar-AV/fedora-cosmic/`](macOS-Northstar-AV/fedora-cosmic/) contains the Fedora COSMIC GTK4 dashboard, CLI, user service, YARA rules, and installer. [`macOS-Northstar-AV/server-headless/`](macOS-Northstar-AV/server-headless/) is the GUI-free server and exit-node build with focused system paths, ClamAV/YARA checks, timestamped Markdown reports, and systemd resource ceilings for a low-overhead footprint.
-
-![Northstar Guard Fedora COSMIC dashboard](macOS-Northstar-AV/fedora-cosmic/northstar-guard-cosmic.png)
-
-![Northstar Guard server agent](macOS-Northstar-AV/server-headless/northstar-server-terminal.png)
-
 ## Before You Begin
 
 Create a Time Machine backup before making system changes.
