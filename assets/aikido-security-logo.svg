@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="611" height="176" viewBox="0 0 611 176" role="img" aria-labelledby="title desc">
+  <title id="title">Aikido Security</title>
+  <desc id="desc">Aikido Security logo mark for repository security footer branding.</desc>
+  <rect width="611" height="176" rx="24" fill="#ffffff"/>
+  <g transform="translate(42 38)">
+    <path d="M51 0L94 24V72C94 91 81 108 51 124C21 108 8 91 8 72V24L51 0Z" fill="#111827"/>
+    <path d="M51 19L76 33V71C76 83 69 94 51 105C33 94 26 83 26 71V33L51 19Z" fill="#ffffff" opacity="0.96"/>
+    <path d="M40 71L50 82L68 51" fill="none" stroke="#111827" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(170 63)">
+    <text x="0" y="0" fill="#111827" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="54" font-weight="850" letter-spacing="-1.4">Aikido</text>
+    <text x="3" y="44" fill="#4b5563" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" letter-spacing="1.4">Security</text>
+  </g>
+</svg>

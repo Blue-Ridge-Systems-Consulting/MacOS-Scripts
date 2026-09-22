@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Blue Ridge Systems Consulting Favicon</title>
+  <desc id="desc">Blue Ridge circuit mountain favicon on a deep blue grid background.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#061427"/><stop offset="0.55" stop-color="#09233e"/><stop offset="1" stop-color="#063f43"/></linearGradient>
+    <linearGradient id="ridge" x1="34" y1="115" x2="222" y2="115" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#39a9e8"/><stop offset="0.48" stop-color="#73e0de"/><stop offset="1" stop-color="#b0ec75"/></linearGradient>
+    <linearGradient id="ridgeSoft" x1="42" y1="149" x2="206" y2="149" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#246ca7"/><stop offset="0.55" stop-color="#53cbc9"/><stop offset="1" stop-color="#92df6d"/></linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#8bd8ff" stroke-width="0.7" opacity="0.16"/><path d="M0 32L32 0" fill="none" stroke="#8bd8ff" stroke-width="0.55" opacity="0.08"/></pattern>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="256" height="256" rx="42" fill="url(#bg)"/>
+  <rect width="256" height="256" rx="42" fill="url(#grid)"/>
+  <circle cx="54" cy="94" r="3" fill="#7dd3fc" opacity="0.22"/><circle cx="178" cy="62" r="3" fill="#7dd3fc" opacity="0.22"/><circle cx="210" cy="148" r="3" fill="#7dd3fc" opacity="0.16"/>
+  <g filter="url(#glow)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M31 152L78 132L100 103L118 113L143 75L170 104L194 94L225 124" stroke="url(#ridge)" stroke-width="9"/>
+    <path d="M67 153L103 122L128 125L145 93L166 118" stroke="url(#ridgeSoft)" stroke-width="7"/>
+    <path d="M48 171H156L176 159H204" stroke="url(#ridge)" stroke-width="7"/>
+    <path d="M76 154H142L165 139H196" stroke="url(#ridgeSoft)" stroke-width="7"/>
+    <path d="M88 183H174" stroke="url(#ridge)" stroke-width="7"/>
+    <path d="M145 75L125 109" stroke="#c9fff2" stroke-width="4" opacity="0.72"/><path d="M154 109H169" stroke="#c9fff2" stroke-width="5" opacity="0.82"/><path d="M191 126H205" stroke="#dfffb4" stroke-width="5" opacity="0.86"/>
+    <circle cx="173" cy="109" r="8" stroke="#c9fff2" stroke-width="5" fill="#08233d"/><circle cx="209" cy="126" r="8" stroke="#dfffb4" stroke-width="5" fill="#08233d"/><circle cx="178" cy="183" r="8" stroke="#a9e86f" stroke-width="5" fill="#08233d"/>
+  </g>
+</svg>
