@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/blue-ridge-systems-consulting-logo.svg" alt="Blue Ridge Systems Consulting Logo" width="160" />
+  <img src="assets/blue-ridge-systems-consulting-logo.svg" alt="Blue Ridge Systems Consulting Logo" width="360" />
 </p>
 
 # Blue Ridge macOS Scripts
