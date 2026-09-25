@@ -23,6 +23,7 @@ Treat Tailscale, Cloudflare, authentication, authorization, firewall configurati
 
 ### GitHub and automation
 
+- Use Codex only when a human explicitly invokes it through the existing ChatGPT/Codex access. Do not add metered AI API calls, API credentials, or automated AI review, diagnosis, or repair workflows as part of this engineering layer.
 - Prefer pull requests. Never push an AI-generated repair directly to the default branch.
 - Preserve branch protection, rulesets, required checks, and signing requirements.
 - Codex-generated repair branches use `codex/`. A repair receives at most one automatic attempt for an originating failure.
