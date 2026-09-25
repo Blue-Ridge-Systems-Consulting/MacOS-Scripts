@@ -13,7 +13,7 @@ Use an ExecPlan when work:
 - requires multiple implementation stages; or
 - would be difficult to understand from the final diff alone.
 
-Do not create an ExecPlan for typo fixes, dependency bumps, small bug fixes, documentation edits, simple configuration changes, or trivial UI changes.
+Do not create an ExecPlan for typo fixes, routine dependency bumps, small bug fixes, documentation edits, simple configuration changes, or trivial UI changes unless the work meets one of the required criteria above. Required criteria, especially security-boundary and deployment-architecture changes, always take precedence over these exemptions.
 
 ## Required sections
 
