@@ -27,7 +27,7 @@ Treat Tailscale, Cloudflare, authentication, authorization, firewall configurati
 - Prefer pull requests. Never push an AI-generated repair directly to the default branch.
 - Preserve branch protection, rulesets, required checks, and signing requirements.
 - Human-invoked Codex repair branches use `codex/`. Do not start a recursive repair when a Codex-generated repair fails; leave the failed PR for human intervention.
-- Never auto-merge changes to `.github/workflows/**`, `AGENTS.md`, `.agent/**`, `CODEOWNERS`, security-sensitive paths, permissions, credentials, infrastructure boundaries, authentication, authorization, signing, SSH trust, firewall policy, or production routing.
+- Never auto-merge changes to `.github/workflows/**`, `AGENTS.md`, `.agent/**`, `CODEOWNERS`, security-sensitive paths, permissions, credentials, infrastructure or deployment, authentication, authorization, signing, SSH trust, firewall policy, or production routing.
 - A human-invoked Codex repair PR may use GitHub-native auto-merge only for an explicitly allowlisted low-risk change after validation and all GitHub-required checks pass. GitHub makes the final merge-readiness determination. When uncertain, stop after diagnosis or leave the PR for human review.
 
 ### Validation
