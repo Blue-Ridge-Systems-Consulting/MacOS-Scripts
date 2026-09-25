@@ -23,7 +23,7 @@ Treat Tailscale, Cloudflare, authentication, authorization, firewall configurati
 
 ### GitHub and automation
 
-- Use Codex only when a human explicitly invokes it through the existing ChatGPT/Codex access. Do not add metered AI API calls, API credentials, or automated AI review, diagnosis, or repair workflows as part of this engineering layer.
+- Use Codex only through the existing ChatGPT/Codex access: either explicitly invoked for work or enabled by a human in Codex settings for recommendations-only review. Do not add metered AI API calls, API credentials, or repository workflows that invoke AI review, diagnosis, or repair as part of this engineering layer.
 - Prefer pull requests. Never push an AI-generated repair directly to the default branch.
 - Preserve branch protection, rulesets, required checks, and signing requirements.
 - Human-invoked Codex repair branches use `codex/`. Do not start a recursive repair when a Codex-generated repair fails; leave the failed PR for human intervention.
@@ -48,5 +48,5 @@ Never claim validation succeeded unless it actually ran successfully.
 
 ### ExecPlans
 
-For substantial features, migrations, architecture changes, security-boundary changes, deployment-architecture changes, or multi-stage work, create and maintain a concise ExecPlan following `.agent/PLANS.md`. Small fixes, documentation edits, routine dependency bumps, and trivial configuration/UI changes do not require an ExecPlan unless they meet one of those mandatory planning criteria.
+For substantial features, migrations, architecture changes, security-boundary changes, deployment-architecture changes, work affecting multiple major components, multi-stage work, or work difficult to understand from the final diff alone, create and maintain a concise ExecPlan following `.agent/PLANS.md`. Small fixes, documentation edits, routine dependency bumps, and trivial configuration/UI changes do not require an ExecPlan unless they meet one of those mandatory planning criteria.
 <!-- END BLUE RIDGE CODEX ENGINEERING LAYER -->
