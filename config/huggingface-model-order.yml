@@ -1,0 +1,12 @@
+# Ordered Hugging Face fallback policy for current and future repository AI consumers.
+# Keep model IDs and labels paired; consumers must try entries in this exact order.
+models:
+  - id: gpt-oss-safeguard-20b
+    label: GPT-OSS Safeguard 20B
+    model: openai/gpt-oss-safeguard-20b:fastest
+  - id: apertus-8b-instruct-2509
+    label: Apertus 8B Instruct 2509
+    model: swiss-ai/Apertus-8B-Instruct-2509:fastest
+  - id: gemma-3-4b-it
+    label: Gemma 3 4B IT
+    model: google/gemma-3-4b-it:fastest
