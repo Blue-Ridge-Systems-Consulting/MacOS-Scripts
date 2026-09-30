@@ -1,12 +1,16 @@
 # Ordered Hugging Face fallback policy for current and future repository AI consumers.
 # Keep model IDs and labels paired; consumers must try entries in this exact order.
+# max_output_tokens is a ceiling only; models may complete with fewer tokens.
+summary:
+  max_output_tokens: 800
+
 models:
-  - id: gpt-oss-safeguard-20b
-    label: GPT-OSS Safeguard 20B
-    model: openai/gpt-oss-safeguard-20b:fastest
   - id: apertus-70b-instruct-2509
     label: Apertus 70B Instruct 2509
     model: swiss-ai/Apertus-70B-Instruct-2509:fastest
+  - id: gpt-oss-safeguard-20b
+    label: GPT-OSS Safeguard 20B
+    model: openai/gpt-oss-safeguard-20b:fastest
   - id: granite-4-2-30b
     label: Granite 4.2 30B
     model: ibm-granite/granite-4.2-30b:fastest
