@@ -4,9 +4,9 @@ models:
   - id: gpt-oss-safeguard-20b
     label: GPT-OSS Safeguard 20B
     model: openai/gpt-oss-safeguard-20b:fastest
-  - id: apertus-8b-instruct-2509
-    label: Apertus 8B Instruct 2509
-    model: swiss-ai/Apertus-8B-Instruct-2509:fastest
-  - id: gemma-3-4b-it
-    label: Gemma 3 4B IT
-    model: google/gemma-3-4b-it:fastest
+  - id: apertus-70b-instruct-2509
+    label: Apertus 70B Instruct 2509
+    model: swiss-ai/Apertus-70B-Instruct-2509:fastest
+  - id: granite-4-2-30b
+    label: Granite 4.2 30B
+    model: ibm-granite/granite-4.2-30b:fastest
