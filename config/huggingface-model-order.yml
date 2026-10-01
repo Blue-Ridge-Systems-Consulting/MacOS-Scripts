@@ -7,10 +7,10 @@ summary:
 models:
   - id: apertus-70b-instruct-2509
     label: Apertus 70B Instruct 2509
-    model: swiss-ai/Apertus-70B-Instruct-2509:fastest
-  - id: gpt-oss-safeguard-20b
-    label: GPT-OSS Safeguard 20B
-    model: openai/gpt-oss-safeguard-20b:fastest
+    model: swiss-ai/Apertus-70B-Instruct-2509:featherless-ai
   - id: granite-4-2-30b
     label: Granite 4.2 30B
     model: ibm-granite/granite-4.2-30b:fastest
+  - id: gpt-oss-safeguard-20b
+    label: GPT-OSS Safeguard 20B
+    model: openai/gpt-oss-safeguard-20b:fastest
