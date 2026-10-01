@@ -4,13 +4,21 @@
 summary:
   max_output_tokens: 800
 
+output_policy:
+  format: markdown
+  direct_insert: true
+  prohibit_nested_markdown: true
+  prohibit_markdown_code_fences: true
+  prohibit_preamble: true
+  prohibit_postscript: true
+
 models:
-  - id: apertus-70b-instruct-2509
-    label: Apertus 70B Instruct 2509
-    model: swiss-ai/Apertus-70B-Instruct-2509:featherless-ai
+  - id: apertus-v1-5-70b
+    label: Apertus v1.5 70B
+    model: swiss-ai/Apertus-v1.5-70B:featherless-ai
   - id: granite-4-2-30b
     label: Granite 4.2 30B
     model: ibm-granite/granite-4.2-30b:fastest
-  - id: gpt-oss-safeguard-20b
-    label: GPT-OSS Safeguard 20B
-    model: openai/gpt-oss-safeguard-20b:fastest
+  - id: gemma-4-31b-it
+    label: Gemma 4 31B IT
+    model: google/gemma-4-31B-it:fastest
