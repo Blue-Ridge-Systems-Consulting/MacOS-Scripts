@@ -16,9 +16,9 @@ models:
   - id: apertus-v1-5-70b
     label: Apertus v1.5 70B
     model: swiss-ai/Apertus-v1.5-70B:featherless-ai
-  - id: granite-4-2-30b
-    label: Granite 4.2 30B
-    model: ibm-granite/granite-4.2-30b:fastest
-  - id: gemma-4-31b-it
-    label: Gemma 4 31B IT
-    model: google/gemma-4-31B-it:fastest
+  - id: llama-3-1-nemotron-70b-instruct-hf
+    label: Llama 3.1 Nemotron 70B Instruct HF
+    model: nvidia/Llama-3.1-Nemotron-70B-Instruct-HF:featherless-ai
+  - id: gpt-oss-120b
+    label: GPT-OSS 120B
+    model: openai/gpt-oss-120b:fastest
