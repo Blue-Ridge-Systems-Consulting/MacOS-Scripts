@@ -19,6 +19,9 @@ models:
   - id: llama-3-1-nemotron-70b-instruct-hf
     label: Llama 3.1 Nemotron 70B Instruct HF
     model: nvidia/Llama-3.1-Nemotron-70B-Instruct-HF:featherless-ai
+  - id: llama-3-1-tulu-3-70b
+    label: Llama 3.1 Tulu 3 70B
+    model: allenai/Llama-3.1-Tulu-3-70B:featherless-ai
   - id: apertus-v1-5-70b
     label: Apertus v1.5 70B
     model: swiss-ai/Apertus-v1.5-70B:featherless-ai
