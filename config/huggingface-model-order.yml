@@ -13,15 +13,15 @@ output_policy:
   prohibit_postscript: true
 
 models:
-  - id: nemotron-3-5-lightning-30b-a3b-bf16
-    label: Nemotron 3.5 Lightning 30B A3B BF16
-    model: nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16:fastest
+  - id: kimi-k2-instruct-0905
+    label: Kimi K2 Instruct 0905
+    model: moonshotai/Kimi-K2-Instruct-0905:featherless-ai
   - id: gpt-oss-20b
     label: GPT-OSS 20B
     model: openai/gpt-oss-20b:fastest
-  - id: glm-4-7-flash
-    label: GLM 4.7 Flash
-    model: zai-org/GLM-4.7-Flash:fastest
+  - id: nemotron-3-nano-30b-a3b-bf16
+    label: NVIDIA Nemotron 3 Nano 30B A3B BF16
+    model: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16:featherless-ai
   - id: gemma-4-31b-it
     label: Gemma 4 31B IT
     model: google/gemma-4-31B-it:fastest
