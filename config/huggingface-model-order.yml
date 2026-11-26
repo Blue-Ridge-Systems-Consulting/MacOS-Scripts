@@ -13,9 +13,9 @@ output_policy:
   prohibit_postscript: true
 
 models:
-  - id: kimi-k2-instruct-0905
-    label: Kimi K2 Instruct 0905
-    model: moonshotai/Kimi-K2-Instruct-0905:novita
+  - id: kimi-k2-6
+    label: Kimi K2.6
+    model: moonshotai/Kimi-K2.6:cheapest
   - id: gpt-oss-20b
     label: GPT-OSS 20B
     model: openai/gpt-oss-20b:fastest
