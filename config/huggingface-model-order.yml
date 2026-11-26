@@ -13,15 +13,15 @@ output_policy:
   prohibit_postscript: true
 
 models:
-  - id: kimi-k2-6
-    label: Kimi K2.6
-    model: moonshotai/Kimi-K2.6:cheapest
+  - id: hf-gpt-oss-120b
+    label: Hugging Face GPT-OSS 120B
+    model: openai/gpt-oss-120b:cheapest
   - id: gpt-oss-20b
     label: GPT-OSS 20B
     model: openai/gpt-oss-20b:fastest
   - id: nemotron-3-nano-30b-a3b-bf16
     label: NVIDIA Nemotron 3 Nano 30B A3B BF16
     model: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16:featherless-ai
-  - id: gemma-4-31b-it
-    label: Gemma 4 31B IT
-    model: google/gemma-4-31B-it:fastest
+  - id: minimax-m2-5
+    label: MiniMax M2.5
+    model: MiniMaxAI/MiniMax-M2.5:cheapest
